@@ -1,12 +1,13 @@
-local module = {}
-module.__index = obj
+local module = {
+  -- Metadata
+  name = "SqueezeVelocity",
+  version = "0.1",
+  author = "Jelle Akkerman",
+  homepage = "https://github.com/jellea/SqueezeVelocity",
+  license = "MIT - https://opensource.org/licenses/MIT"
+}
 
--- Metadata
-module.name = "SqueezeVelocity"
-module.version = "0.1"
-module.author = "Jelle Akkerman"
-module.homepage = "https://github.com/jellea/SqueezeVelocity"
-module.license = "MIT - https://opensource.org/licenses/MIT"
+module.__index = obj
 
 function module:playAlbum(album)
   if album then
@@ -14,7 +15,7 @@ function module:playAlbum(album)
   end
 end
 
-module.ch = hs.chooser.new(module.playAlbum)
+module.ch = hs.chooser.new(function(a) module:playAlbum(a) end)
 
 function module:readDB()
   local tables = {}

@@ -1,5 +1,5 @@
 # SqueezeVelocity
-Fuzzy search your music collection. For Logitech Media Server 7.6 and up.
+Fuzzy search your music collection. For Logitech Media Server 7.6+ and Hammerspoon
 
 ![screenshot](screen.png "Screenshot")
 
