@@ -6,12 +6,22 @@ local module = {
   homepage = "https://github.com/jellea/SqueezeVelocity",
   license = "MIT - https://opensource.org/licenses/MIT"
 }
+module.__index = module
 
-module.__index = obj
+local getSetting = function(label, default)
+  return hs.settings.get(label)
+  or
+  default
+end
+
+local serverURL = getSetting("squeezeconfig").serverURL
+local playerId = getSetting("squeezeconfig").playerId
+local albumCoversEnabled = getSetting("squeezeconfig").albumCoversEnabled
+
 
 local notify = function(album, statusCode, res, hed)
   if statusCode == 200 then
-    if album.image then	  
+    if album.image then
       hs.notify.new({title="Hammerspoon", informativeText="Playing "..album.text.." by "..album.subText, contentImage=album.image}):send()
     else
       hs.notify.new({title="Hammerspoon", informativeText="Playing "..album.text.." by "..album.subText}):send()
@@ -23,7 +33,7 @@ end
 
 function module:playAlbum(album)
   if album then
-    hs.http.asyncPost(self.serverURL .. "jsonrpc.js", '{"id":1,"method":"slim.request","params":["' .. self.playerId .. '",["playlist","loadtracks","album.id=' .. album.uuid .. '"]]}', nil, hs.fnutils.partial(notify, album))
+    hs.http.asyncPost(serverURL .. "jsonrpc.js", '{"id":1,"method":"slim.request","params":["' .. playerId .. '",["playlist","loadtracks","album.id=' .. album.uuid .. '"]]}', nil, hs.fnutils.partial(notify, album))
   end
 end
 
@@ -32,12 +42,12 @@ module.ch = hs.chooser.new(function(a) module:playAlbum(a) end)
 function module:readDB()
   local tables = {}
 
-  hs.http.asyncPost(self.serverURL.."jsonrpc.js", '{"id":1,"method":"slim.request","params":["'..self.playerId..'",["albums","0","5000","tags:ljya"]]}', nil, 
+  hs.http.asyncPost(serverURL.."jsonrpc.js", '{"id":1,"method":"slim.request","params":["'..playerId..'",["albums","0","5000","tags:ljya"]]}', nil,
     function(s,res,h)
     local albums =  hs.json.decode(res).result.albums_loop
     for k, a in pairs(albums) do
-      if (a.artwork_track_id and self.albumCoversEnabled) then
-      local img = hs.image.imageFromURL(self.serverURL.."music/"..a.artwork_track_id.."/cover_96x96_p.png")
+      if (a.artwork_track_id and albumCoversEnabled) then
+      local img = hs.image.imageFromURL(serverURL.."music/"..a.artwork_track_id.."/cover_96x96_p.png")
 
       table.insert(tables,
              {text=a.album,
@@ -64,12 +74,6 @@ function module:bindHotKeys(mapping)
 end
 
 module.start = module.readDB
-
-function module:configure(config)
-  for k,v in pairs(config) do
-    module[k] = v
-  end
-end
 
 function module:init()
   self.ch:rows(10)
