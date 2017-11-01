@@ -9,9 +9,21 @@ local module = {
 
 module.__index = obj
 
+local notify = function(album, statusCode, res, hed)
+  if statusCode == 200 then
+    if album.image then	  
+      hs.notify.new({title="Hammerspoon", informativeText="Playing "..album.text.." by "..album.subText, contentImage=album.image}):send()
+    else
+      hs.notify.new({title="Hammerspoon", informativeText="Playing "..album.text.." by "..album.subText}):send()
+    end
+  else
+    hs.notify.new({title="Hammerspoon", informativeText="Error: "..hs.inspect.inspect(res)}):send()
+  end
+end
+
 function module:playAlbum(album)
   if album then
-  hs.http.asyncPost(self.serverURL .. "jsonrpc.js", '{"id":1,"method":"slim.request","params":["' .. self.playerId .. '",["playlist","loadtracks","album.id=' .. album.uuid .. '"]]}', nil, function(s,res,h) print("requested to play "..album.text.." by "..album.subText) end)
+    hs.http.asyncPost(self.serverURL .. "jsonrpc.js", '{"id":1,"method":"slim.request","params":["' .. self.playerId .. '",["playlist","loadtracks","album.id=' .. album.uuid .. '"]]}', nil, hs.fnutils.partial(notify, album))
   end
 end
 
